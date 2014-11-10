@@ -1,0 +1,9 @@
+{
+    "name": "Z-Wave.Me 4 256",
+    "url": "https://github.com/ContinuumBridge/z-wave.me-wall-controller/archive/v0.0.1.tar.gz",
+    "exe": "adaptor.py",
+    "description": "Z-Wave.Me Wall Controller with four buttons.",
+    "protocol": "zwave",
+    "provider": "ContinuumBridge",
+    "version": "0.0.1"
+}
