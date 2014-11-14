@@ -3,9 +3,8 @@
 # Copyright (C) ContinuumBridge Limited, 2014 - All Rights Reserved
 # Written by Peter Claydon
 #
-ModuleName               = "z-wave.me-wall-controller"
-BATTERY_CHECK_INTERVAL   = 3600     # How often to check battery (secs)
-SENSOR_POLL_INTERVAL     = 600      # How often to request sensor values
+ModuleName               = "zwave.me_wall_controller"
+BATTERY_CHECK_INTERVAL   = 21600    # How often to check battery (secs) = 6 hours
 
 import sys
 import time
@@ -79,7 +78,7 @@ class Adaptor(CbAdaptor):
         reactor.callLater(SENSOR_POLL_INTERVAL * 2, self.checkConnected)
 
     def onZwaveMessage(self, message):
-        logging.debug("%s %s onZwaveMessage, message: %s", ModuleName, self.id, str(message))
+        #logging.debug("%s %s onZwaveMessage, message: %s", ModuleName, self.id, str(message))
         if message["content"] == "init":
             self.updateTime = 0
             self.lastUpdateTime = time.time()
@@ -109,7 +108,7 @@ class Adaptor(CbAdaptor):
                    "commandClass": "128"
                   }
             self.sendZwaveMessage(cmd)
-            reactor.callLater(20, self.checkBattery)
+            reactor.callLater(60, self.checkBattery)
         elif message["content"] == "data":
             try:
                 if message["commandClass"] == "32":
@@ -150,7 +149,7 @@ class Adaptor(CbAdaptor):
         self.setState("running")
 
     def onAppRequest(self, message):
-        logging.debug("%s %s %s onAppRequest, message = %s", ModuleName, self.id, self.friendly_name, message)
+        #logging.debug("%s %s %s onAppRequest, message = %s", ModuleName, self.id, self.friendly_name, message)
         # Switch off anything that already exists for this app
         for a in self.apps:
             if message["id"] in self.apps[a]:
@@ -162,7 +161,7 @@ class Adaptor(CbAdaptor):
         logging.debug("%s %s %s apps: %s", ModuleName, self.id, self.friendly_name, str(self.apps))
 
     def onAppCommand(self, message):
-        logging.debug("%s %s %s onAppCommand, req = %s", ModuleName, self.id, self.friendly_name, message)
+        #logging.debug("%s %s %s onAppCommand, req = %s", ModuleName, self.id, self.friendly_name, message)
         if "data" not in message:
             logging.warning("%s %s %s app message without data: %s", ModuleName, self.id, self.friendly_name, message)
         else:
