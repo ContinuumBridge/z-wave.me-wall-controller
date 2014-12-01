@@ -1,7 +1,7 @@
 {
     "exe": "adaptor.py", 
     "protocol": "zwave", 
-    "name": "Z-Wave.Me 4 256", 
+    "name": "Z-Wave.Me 1 256", 
     "device_resource": "/api/bridge/v1/device/35/", 
     "url": "https://github.com/ContinuumBridge/zwave.me_wall_controller/archive/v0.0.4.tar.gz", 
     "version": "0.0.4", 
