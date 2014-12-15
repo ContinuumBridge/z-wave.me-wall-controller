@@ -16,12 +16,6 @@ from cbconfig import *
 from twisted.internet import threads
 from twisted.internet import reactor
 
-def onOff(value):
-    if value == 0:
-        return "off"
-    else:
-        return "on"
-
 class Adaptor(CbAdaptor):
     def __init__(self, argv):
         logging.basicConfig(filename=CB_LOGFILE,level=CB_LOGGING_LEVEL,format='%(asctime)s %(message)s')
@@ -83,23 +77,14 @@ class Adaptor(CbAdaptor):
             self.updateTime = 0
             self.lastUpdateTime = time.time()
             # number_buttons 
-            for button in ('1', '2'):
-                cmd = {"id": self.id,
-                       "request": "get",
-                       "address": "1",
-                       "instance": button,
-                       "commandClass": "32",
-                       "value": "level"
-                      }
-                self.sendZwaveMessage(cmd)
-                cmd = {"id": self.id,
-                       "request": "get",
-                       "address": "1",
-                       "instance": button,
-                       "commandClass": "32",
-                       "value": "srcNodeId"
-                      }
-                self.sendZwaveMessage(cmd)
+            cmd = {"id": self.id,
+                   "request": "get",
+                   "address": self.addr,
+                   "instance": "0",
+                   "commandClass": "91",
+                   "value": "currentScene"
+                  }
+            self.sendZwaveMessage(cmd)
             # Battery
             cmd = {"id": self.id,
                    "request": "get",
@@ -111,18 +96,24 @@ class Adaptor(CbAdaptor):
             reactor.callLater(60, self.checkBattery)
         elif message["content"] == "data":
             try:
-                if message["commandClass"] == "32":
-                    if message["data"]["name"] == "level":
-                        self.currentValue = message["data"]["value"]
-                    elif message["data"]["name"] == "srcNodeId":
-                        if str(message["data"]["value"]) == self.addr:
-                            instance = message["instance"]
-                            updateTime = message["data"]["updateTime"]
-                            data = {instance: onOff(self.currentValue)}
-                            logging.debug("%s %s onZwaveMessage, data: %s", ModuleName, self.id, data)
-                            self.sendCharacteristic("number_buttons", data, time.time())
+                if message["commandClass"] == "91":
+                    if message["data"]["name"] == "currentScene":
+                        value = message["data"]["value"]
+                        updateTime = message["data"]["updateTime"]
+                        if value == 1:
+                            data = {"1": "on"}
+                        elif value == 2:
+                            data = {"2": "on"}
+                        elif value == 5:
+                            data = {"3": "on"}
+                        elif value == 6:
+                            data = {"4": "on"}
+                        else:
+                            data = {"0": "off"}
+                        #logging.debug("%s %s onZwaveMessage, value: %s", ModuleName, self.id, value)
+                        self.sendCharacteristic("number_buttons", data, updateTime)
                 elif message["commandClass"] == "128":
-                     logging.debug("%s %s onZwaveMessage, battery message: %s", ModuleName, self.id, str(message))
+                     #logging.debug("%sg%s onZwaveMessage, battery message: %s", ModuleName, self.id, str(message))
                      battery = message["data"]["last"]["value"] 
                      logging.info("%s %s battery level: %s", ModuleName, self.id, battery)
                      msg = {"id": self.id,
@@ -133,8 +124,8 @@ class Adaptor(CbAdaptor):
                 else:
                     logging.warning("%s onZwaveMessage. Unrecognised message: %s", ModuleName, str(message))
                 self.updateTime = message["data"]["updateTime"]
-            except Exception as inst:
-                logging.warning("%s onZwaveMessage. Exception: %s %s %s", ModuleName, str(message), type(inst), str(inst.args))
+            except Exception as ex:
+                logging.warning("%s onZwaveMessage. Exception: %s %s %s", ModuleName, str(message), type(ex), str(ex.args))
 
     def onAppInit(self, message):
         logging.debug("%s %s %s onAppInit, req = %s", ModuleName, self.id, self.friendly_name, message)

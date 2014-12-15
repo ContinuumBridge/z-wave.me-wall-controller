@@ -1,10 +1,10 @@
 {
     "exe": "adaptor.py", 
     "protocol": "zwave", 
-    "name": "Z-Wave.Me 1 256", 
+    "name": "Z-Wave.Me 257 256", 
     "device_resource": "/api/bridge/v1/device/35/", 
-    "url": "https://github.com/ContinuumBridge/zwave.me_wall_controller/archive/v0.0.4.tar.gz", 
-    "version": "0.0.4", 
+    "url": "https://github.com/ContinuumBridge/zwave.me_wall_controller/archive/v1.0.0.tar.gz", 
+    "version": "1.0.0", 
     "provider": "ContinuumBridge", 
     "adaptor_resource": "/api/bridge/v1/adaptor/29/", 
     "description": "Z-Wave.Me Wall Controller with four buttons."
