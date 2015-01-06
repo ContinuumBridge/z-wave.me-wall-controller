@@ -3,8 +3,8 @@
     "protocol": "zwave", 
     "name": "Z-Wave.Me 257 256", 
     "device_resource": "/api/bridge/v1/device/49/", 
-    "url": "https://github.com/ContinuumBridge/zwave.me_wall_controller/archive/v1.0.0.tar.gz", 
-    "version": "1.0.0", 
+    "url": "https://github.com/ContinuumBridge/zwave.me_wall_controller/archive/v1.0.1.tar.gz", 
+    "version": "1.0.1", 
     "provider": "ContinuumBridge", 
     "adaptor_resource": "/api/bridge/v1/adaptor/12/", 
     "description": "Z-Wave.Me Wall Controller with four buttons."

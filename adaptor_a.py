@@ -5,6 +5,7 @@
 #
 ModuleName               = "zwave.me_wall_controller"
 BATTERY_CHECK_INTERVAL   = 21600    # How often to check battery (secs) = 6 hours
+CHECK_ALIVE_INTERVAL     = 10800    # How often to check if device is alive
 
 import sys
 import time
@@ -25,6 +26,7 @@ class Adaptor(CbAdaptor):
                                  "battery": [],
                                  "connected": []}
         self.currentValue =     "0"
+        self.lastWakeupTime =   time.time()
         # super's __init__ must be called:
         #super(Adaptor, self).__init__(argv)
         CbAdaptor.__init__(self, argv)
@@ -63,13 +65,13 @@ class Adaptor(CbAdaptor):
         reactor.callLater(BATTERY_CHECK_INTERVAL, self.checkBattery)
 
     def checkConnected(self):
-        if self.updateTime == self.lastUpdateTime:
+        if time.time() - self.updateTime > CHECK_ALIVE_INTERVAL + 60:
             self.connected = False
         else:
             self.connected = True
         self.sendCharacteristic("connected", self.connected, time.time())
         self.lastUpdateTime = self.updateTime
-        reactor.callLater(SENSOR_POLL_INTERVAL * 2, self.checkConnected)
+        reactor.callLater(CHECK_ALIVE_INTERVAL, self.checkConnected)
 
     def onZwaveMessage(self, message):
         #logging.debug("%s %s onZwaveMessage, message: %s", ModuleName, self.id, str(message))
@@ -94,6 +96,16 @@ class Adaptor(CbAdaptor):
                   }
             self.sendZwaveMessage(cmd)
             reactor.callLater(60, self.checkBattery)
+            # wakeup 
+            cmd = {"id": self.id,
+                   "request": "get",
+                   "address": self.addr,
+                   "instance": "0",
+                   "commandClass": "132",
+                   "value": "lastWakeup"
+                  }
+            self.sendZwaveMessage(cmd)
+            reactor.callLater(CHECK_ALIVE_INTERVAL, self.checkConnected)
         elif message["content"] == "data":
             try:
                 if message["commandClass"] == "91":
@@ -121,6 +133,8 @@ class Adaptor(CbAdaptor):
                             "battery_level": battery}
                      self.sendManagerMessage(msg)
                      self.sendCharacteristic("battery", battery, time.time())
+                elif message["commandClass"] == "132":
+                     logging.info("%s %s device woke up", ModuleName, self.id)
                 else:
                     logging.warning("%s onZwaveMessage. Unrecognised message: %s", ModuleName, str(message))
                 self.updateTime = message["data"]["updateTime"]
