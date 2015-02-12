@@ -109,7 +109,7 @@ class Adaptor(CbAdaptor):
         elif message["content"] == "data":
             try:
                 if message["commandClass"] == "91":
-                    if message["data"]["name"] == "currentScene":
+                    if message["value"] == "currentScene":
                         value = message["data"]["value"]
                         updateTime = message["data"]["updateTime"]
                         if value == 1:
