@@ -74,7 +74,7 @@ class Adaptor(CbAdaptor):
         reactor.callLater(CHECK_ALIVE_INTERVAL, self.checkConnected)
 
     def onZwaveMessage(self, message):
-        #logging.debug("%s %s onZwaveMessage, message: %s", ModuleName, self.id, str(message))
+        logging.debug("%s %s onZwaveMessage, message: %s", ModuleName, self.id, str(message))
         if message["content"] == "init":
             self.updateTime = 0
             self.lastUpdateTime = time.time()
