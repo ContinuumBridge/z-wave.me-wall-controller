@@ -5,7 +5,7 @@
 #
 ModuleName               = "zwave.me_wall_controller"
 BATTERY_CHECK_INTERVAL   = 21600    # How often to check battery (secs) = 6 hours
-CHECK_ALIVE_INTERVAL     = 10800    # How often to check if device is alive
+CHECK_ALIVE_INTERVAL     = 21600    # How often to check if device is alive
 
 import sys
 import time
@@ -94,6 +94,15 @@ class Adaptor(CbAdaptor):
             self.sendZwaveMessage(cmd)
             reactor.callLater(60, self.checkBattery)
             # wakeup 
+            cmd = {"id": self.id,
+                   "request": "post",
+                   "address": self.addr,
+                   "instance": "0",
+                   "commandClass": "132",
+                   "action": "Set",
+                   "value": "21600,1"
+                  }
+            self.sendZwaveMessage(cmd)
             cmd = {"id": self.id,
                    "request": "get",
                    "address": self.addr,
