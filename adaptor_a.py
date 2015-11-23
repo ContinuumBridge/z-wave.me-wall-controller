@@ -6,6 +6,7 @@
 ModuleName               = "zwave.me_wall_controller"
 BATTERY_CHECK_INTERVAL   = 21600    # How often to check battery (secs) = 6 hours
 CHECK_ALIVE_INTERVAL     = 21600    # How often to check if device is alive
+TIME_CUTOFF              = 30       # Data older than this is considered "stale"
 
 import sys
 import time
@@ -24,6 +25,8 @@ class Adaptor(CbAdaptor):
                                  "battery": [],
                                  "connected": []}
         self.currentValue =     "0"
+        self.lastButtonTime =   0
+        self.lastBatteryTime =  0
         self.lastWakeupTime =   time.time()
         # super's __init__ must be called:
         #super(Adaptor, self).__init__(argv)
@@ -116,28 +119,33 @@ class Adaptor(CbAdaptor):
             try:
                 if message["commandClass"] == "91":
                     if message["value"] == "currentScene":
-                        value = message["data"]["value"]
                         updateTime = message["data"]["updateTime"]
-                        if value == 1:
-                            data = {"1": "on"}
-                        elif value == 2:
-                            data = {"2": "on"}
-                        elif value == 5:
-                            data = {"3": "on"}
-                        elif value == 6:
-                            data = {"4": "on"}
-                        else:
-                            data = {"0": "off"}
-                        self.cbLog("debug", "onZwaveMessage, value: " + str(value))
-                        self.sendCharacteristic("number_buttons", data, updateTime)
+                        if updateTime != self.lastButtonTime and time.time() - updateTime < TIME_CUTOFF:
+                            value = message["data"]["value"]
+                            if value == 1:
+                                data = {"1": "on"}
+                            elif value == 2:
+                                data = {"2": "on"}
+                            elif value == 5:
+                                data = {"3": "on"}
+                            elif value == 6:
+                                data = {"4": "on"}
+                            else:
+                                data = {"0": "off"}
+                            self.cbLog("debug", "onZwaveMessage, value: " + str(value))
+                            self.sendCharacteristic("number_buttons", data, updateTime)
+                            self.lastButtonTime = updateTime
                 elif message["commandClass"] == "128":
-                     battery = message["data"]["last"]["value"] 
-                     self.cbLog("debug", "onZwaveMessage, battery: " + str(battery))
-                     msg = {"id": self.id,
-                            "status": "battery_level",
-                            "battery_level": battery}
-                     self.sendManagerMessage(msg)
-                     self.sendCharacteristic("battery", battery, time.time())
+                    updateTime = message["data"]["last"]["updateTime"]
+                    if (updateTime != self.lastBatteryTime) and (time.time() - updateTime < TIME_CUTOFF):
+                        battery = message["data"]["last"]["value"] 
+                        self.cbLog("debug", "onZwaveMessage, battery: " + str(battery))
+                        msg = {"id": self.id,
+                               "status": "battery_level",
+                               "battery_level": battery}
+                        self.sendManagerMessage(msg)
+                        self.sendCharacteristic("battery", battery, time.time())
+                        self.lastBatteryTime = updateTime
                 elif message["commandClass"] == "132":
                      self.cbLog("debug", "device woke up")
                 else:
